@@ -93,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showToast("Kayıtlı ilerlemeniz yüklendi. Kaldığınız yerden devam ediyorsunuz.", "success");
     }
 
-    if (!localStorage.getItem('tlcl_info_seen')) {
+    if (!localStorage.getItem('tlcl_info_seen') && localStorage.getItem('tlcl_lang') === 'tr') {
         openModal();
     }
 
