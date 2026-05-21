@@ -12,7 +12,7 @@
         // Immediate redirection logic to avoid FOUC
         (function() {
             const lang = localStorage.getItem('tlcl_lang');
-            if (lang === 'tr') {
+            if (lang === 'tr' || !lang) {
                 window.location.href = '../index.html';
             }
         })();

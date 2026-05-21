@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.showToast("Your saved progress has been loaded. Continuing where you left off.", "success");
     }
 
-    if (!localStorage.getItem('tlcl_info_seen_en')) {
+    if (!localStorage.getItem('tlcl_info_seen_en') && localStorage.getItem('tlcl_lang') === 'en') {
         openModal();
     }
 

@@ -355,6 +355,10 @@
                     }
                     setTimeout(() => {
                         window.showToast?.("Türkçe eğitim dili seçildi. İyi çalışmalar!", "success");
+                        if (!localStorage.getItem('tlcl_info_seen')) {
+                            const infoModal = document.getElementById('info-modal');
+                            if (infoModal) infoModal.classList.remove('hidden');
+                        }
                     }, 200);
                 });
             }
