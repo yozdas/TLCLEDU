@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Linux Command Line - Interactive Training</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Immediate redirection logic to avoid FOUC
+        (function() {
+            const lang = localStorage.getItem('tlcl_lang');
+            if (lang === 'tr') {
+                window.location.href = '../index.html';
+            }
+        })();
+    </script>
+</head>
+<body>
+    <div id="app-container">
+        <!-- Left Panel: Educational Content -->
+        <aside id="tutorial-panel">
+            <header>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center;">
+                        <button id="btn-sidebar-toggle" title="Curriculum Menu" style="background: none; border: none; color: var(--text-main); font-size: 1.5em; cursor: pointer; margin-right: 15px;">☰</button>
+                        <h1 style="margin-bottom: 0; font-size: 1.5em;">TLCL Training</h1>
+                    </div>
+                    <div class="backup-tools" style="display: flex; gap: 8px;">
+                        <button id="btn-lang-tr" title="Switch to Turkish" style="background: rgba(234,179,8,0.2); border: 1px solid rgba(234,179,8,0.4); border-radius: 4px; color: #fef08a; cursor: pointer; padding: 4px 8px;">🇹🇷 TR</button>
+                        <button id="btn-info" title="System User Guide" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); border-radius: 4px; color: #93c5fd; cursor: pointer; padding: 4px 8px;">ℹ️ Info</button>
+                        <button id="btn-backup" title="Backup Progress" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer; padding: 4px 8px;">💾 Backup</button>
+                        <button id="btn-restore" title="Restore Backup" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer; padding: 4px 8px;">📂 Restore</button>
+                        <button id="btn-reset" title="Reset Training" style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; color: #fca5a5; cursor: pointer; padding: 4px 8px;">🔄 Reset</button>
+                        <input type="file" id="file-restore" accept=".json" style="display: none;">
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="course-progress" style="width: 0%;"></div>
+                </div>
+                <span id="progress-text">Module 1 / Lesson 1.1</span>
+            </header>
+            
+            <div id="lesson-content" class="lesson-transition">
+                <h2 id="lesson-title">Loading...</h2>
+                <div class="lesson-text" id="lesson-text"></div>
+                <div class="task-box" id="task-box-container">
+                    <div class="task-badge">TASK</div>
+                    <div class="task-content">
+                        <span id="lesson-task"></span>
+                    </div>
+                    <button id="btn-next-lesson" class="btn-primary hidden">Next Lesson ➡️</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Right Panel: Terminal & Filesystem -->
+        <section id="interactive-panel">
+            <div class="matrix-scanlines"></div>
+            <!-- Terminal Wrapper -->
+            <div id="terminal-wrapper" class="glass-panel">
+                <div class="panel-header">
+                    <div class="mac-buttons">
+                        <span class="close"></span>
+                        <span class="minimize"></span>
+                        <span class="maximize"></span>
+                    </div>
+                    <span class="panel-title">user@linux:~</span>
+                </div>
+                <div id="terminal-body" class="terminal-content">
+                    <div id="terminal-output">
+                        <div class="terminal-line"><span class="welcome-text">Welcome to the Interactive Linux Command Line Environment!</span></div>
+                        <div class="terminal-line"><span class="welcome-text">Sample scripts mentioned in the book are in the <u>~/scripts/</u> directory.</span></div>
+                        <div class="terminal-line"><span class="welcome-text">Terminal is ready.</span></div>
+                    </div>
+                    <div class="terminal-input-line">
+                        <span id="terminal-prompt" class="prompt"></span>
+                        <input type="text" id="terminal-input" autofocus spellcheck="false" autocomplete="off">
+                    </div>
+                </div>
+                <!-- Vim Editor Simulation -->
+                <div id="vim-editor" class="hidden">
+                    <div id="vim-status-bar">
+                        <span id="vim-mode">NORMAL</span>
+                        <span id="vim-filename"></span>
+                    </div>
+                    <textarea id="vim-textarea" spellcheck="false"></textarea>
+                    <div id="vim-command-line"></div>
+                </div>
+            </div>
+
+            <!-- Visual Filesystem Visualization -->
+            <div id="filesystem-wrapper" class="glass-panel">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="panel-title">Visual Filesystem Status</span>
+                    <div class="tree-controls" style="display: flex; gap: 8px;">
+                        <button id="btn-expand-all" class="btn-mini" title="Expand All">📂+</button>
+                        <button id="btn-collapse-all" class="btn-mini" title="Collapse All">📂-</button>
+                    </div>
+                </div>
+                <div id="filesystem-body">
+                    <!-- Dynamic tree structure will go here -->
+                    <ul class="fs-tree" id="fs-root">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- Sidebar Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+    <div id="sidebar-drawer" class="sidebar-drawer hidden glass-panel">
+        <div class="sidebar-header">
+            <h2 style="margin: 0; font-size: 1.2rem;">📚 Curriculum</h2>
+            <button id="btn-close-sidebar" class="close-sidebar">&times;</button>
+        </div>
+        <!-- Book PDF Reading Panel -->
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color);">
+             <a href="../assets/TLCL-25.12.pdf" target="_blank" style="display: flex; align-items: center; gap: 12px; background: rgba(64, 138, 113, 0.12); border: 1px solid rgba(64, 138, 113, 0.25); padding: 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); transition: all 0.25s ease;" onmouseover="this.style.background='rgba(64, 138, 113, 0.22)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(64, 138, 113, 0.12)'; this.style.borderColor='rgba(64, 138, 113, 0.25)'; this.style.transform='none';">
+                 <span style="font-size: 1.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">📖</span>
+                 <div style="display: flex; flex-direction: column; text-align: left; gap: 2px;">
+                     <span style="font-weight: 600; font-size: 0.95rem; letter-spacing: 0.3px;">The Linux Command Line</span>
+                     <span style="font-size: 0.78rem; color: var(--text-muted);">Read the Book as PDF ↗</span>
+                 </div>
+             </a>
+        </div>
+        <div class="sidebar-body" id="sidebar-accordion">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Info Pop-up (Modal) -->
+    <div id="info-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>System User Guide</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>🚀 Continue Training</h3>
+                <p>Your progress and created files are <strong>automatically saved to your browser cache</strong>. Even if you close the page, you can pick up exactly where you left off.</p>
+
+                <h3>📚 Curriculum & Lesson Selection</h3>
+                <p>Click the <strong>☰ (Menu)</strong> button in the top left corner to access the full curriculum, see completed or active chapters, and quickly switch to any lesson.</p>
+                
+                <h3>📖 Training Book (PDF)</h3>
+                <p>You can access the official <strong>"The Linux Command Line"</strong> book, which forms the basis of this training, directly from the link at the very top of the <strong>☰ (Curriculum)</strong> menu, and practice in the terminal while reading it.</p>
+
+                <h3>💾 Backing Up Progress (Backup)</h3>
+                <p>If you are switching to another browser or computer, or just want to take a precaution, use the <strong>"Backup"</strong> button to download your progress as a <code>tlcl_backup_en.json</code> file to your computer.</p>
+
+                <h3>📂 Restoring Backup (Restore)</h3>
+                <p>Select your previously downloaded backup with the <strong>"Restore"</strong> button to load it into the system and continue exactly where you left off.</p>
+
+                <h3>🔄 Resetting Training</h3>
+                <p>If you want to start from the absolute beginning, use the <strong>"Reset"</strong> button. This action completely deletes all your progress and saved files.</p>
+
+                <h3>📜 Sample Scripts</h3>
+                <p>Actual script examples mentioned in the book are pre-loaded in the <code>/home/user/scripts/</code> directory. You can try running these scripts with <code>bash scripts/filename</code>.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-close-modal" class="btn-primary">Got it, let's start!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal (Custom Confirm) -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="confirm-title">⚠️ Confirmation Required</h2>
+                <span class="close-modal" id="btn-close-confirm">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message" style="font-size: 1.1rem; text-align: center; padding: 10px 0;">Are you sure you want to proceed with this action?</p>
+            </div>
+            <div class="modal-footer" style="gap: 12px; display: flex; justify-content: center; border-top: none;">
+                <button id="btn-confirm-cancel" class="btn-mini" style="padding: 12px 24px; font-size: 0.9rem;">CANCEL</button>
+                <button id="btn-confirm-ok" class="btn-primary" style="padding: 12px 24px; font-size: 0.9rem;">YES, CONTINUE</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="custom-context-menu" class="context-menu hidden">
+        <ul>
+            <li id="menu-paste">📋 Paste</li>
+            <li id="menu-copy">📄 Copy Selected</li>
+            <li id="menu-clear">🧹 Clear Screen</li>
+        </ul>
+    </div>
+
+    <script src="js/fs.js"></script>
+    <script src="js/processes.js"></script>
+    <script src="js/vim.js"></script>
+    <script src="js/commands.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/course.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

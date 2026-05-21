@@ -1,0 +1,120 @@
+class VimEditor {
+    constructor(terminal) {
+        this.terminal = terminal;
+        this.container = document.getElementById('vim-editor');
+        this.textarea = document.getElementById('vim-textarea');
+        this.modeEl = document.getElementById('vim-mode');
+        this.filenameEl = document.getElementById('vim-filename');
+        this.commandLine = document.getElementById('vim-command-line');
+        
+        this.active = false;
+        this.mode = 'NORMAL'; // NORMAL, INSERT, COMMAND
+        this.filename = '';
+        this.command = '';
+        
+        this.setupEventListeners();
+    }
+
+    open(filename, content = '') {
+        this.active = true;
+        this.filename = filename;
+        this.textarea.value = content;
+        this.filenameEl.textContent = filename;
+        this.mode = 'NORMAL';
+        this.updateUI();
+        this.container.classList.remove('hidden');
+        this.textarea.focus();
+        
+        // Disable terminal input
+        this.terminal.inputEl.disabled = true;
+    }
+
+    close() {
+        this.active = false;
+        this.container.classList.add('hidden');
+        this.terminal.inputEl.disabled = false;
+        this.terminal.inputEl.focus();
+    }
+
+    updateUI() {
+        this.modeEl.textContent = this.mode;
+        let modeColor = '#408A71'; // Normal (Medium Green)
+        if (this.mode === 'INSERT') modeColor = '#B0E4CC'; // Insert (Light Mint)
+        if (this.mode === 'COMMAND') modeColor = '#10b981'; // Command (Success Green)
+        
+        this.modeEl.style.backgroundColor = modeColor;
+        this.commandLine.textContent = this.mode === 'COMMAND' ? ':' + this.command : '';
+        
+        if (this.mode === 'COMMAND') {
+            this.commandLine.style.display = 'block';
+        } else {
+            // In a real terminal, the command line is always there but often empty
+            // For our UI, we'll just show it when needed or keep it empty
+        }
+    }
+
+    setupEventListeners() {
+        this.textarea.addEventListener('keydown', (e) => {
+            if (!this.active) return;
+
+            if (this.mode === 'NORMAL') {
+                e.preventDefault();
+                if (e.key === 'i') {
+                    this.mode = 'INSERT';
+                } else if (e.key === ':') {
+                    this.mode = 'COMMAND';
+                    this.command = '';
+                }
+            } else if (this.mode === 'INSERT') {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    this.mode = 'NORMAL';
+                }
+            } else if (this.mode === 'COMMAND') {
+                e.preventDefault();
+                if (e.key === 'Escape') {
+                    this.mode = 'NORMAL';
+                    this.command = '';
+                } else if (e.key === 'Enter') {
+                    this.executeCommand();
+                } else if (e.key === 'Backspace') {
+                    this.command = this.command.slice(0, -1);
+                    if (this.command === '') {
+                        // Keep colon? No, if backspace on empty command, go back to normal
+                    }
+                } else if (e.key.length === 1) {
+                    this.command += e.key;
+                }
+            }
+            this.updateUI();
+        });
+    }
+
+    executeCommand() {
+        const cmd = this.command.trim();
+        if (cmd === 'q') {
+            this.close();
+        } else if (cmd === 'w') {
+            this.save();
+        } else if (cmd === 'wq') {
+            this.save();
+            this.close();
+        } else if (cmd === 'q!') {
+            this.close();
+        }
+        this.mode = 'NORMAL';
+        this.command = '';
+        this.updateUI();
+    }
+
+    save() {
+        if (this.filename) {
+            this.terminal.fs.writeFile(this.filename, this.textarea.value);
+            const originalText = this.filenameEl.textContent;
+            this.filenameEl.textContent = `"${this.filename}" [Written]`;
+            setTimeout(() => {
+                this.filenameEl.textContent = this.filename;
+            }, 2000);
+        }
+    }
+}

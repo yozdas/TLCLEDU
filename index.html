@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Linux Command Line - Interactive Training</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Immediate redirection logic to avoid FOUC
+        (function() {
+            const lang = localStorage.getItem('tlcl_lang');
+            if (lang === 'en') {
+                window.location.href = 'en/index.html';
+            } else if (lang === 'tr') {
+                document.documentElement.classList.add('lang-tr-set');
+            }
+        })();
+    </script>
+    <style>
+        /* Language Splash Screen Styles */
+        .lang-tr-set #language-splash {
+            display: none !important;
+        }
+        #language-splash {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, rgba(16, 24, 48, 0.95) 0%, rgba(8, 12, 24, 0.98) 100%);
+            z-index: 10000;
+            backdrop-filter: blur(20px);
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        #language-splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .splash-card {
+            width: 90%;
+            max-width: 650px;
+            padding: 40px;
+            text-align: center;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.03);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #language-splash:not(.hidden) .splash-card {
+            transform: scale(1);
+        }
+        .splash-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #b0e4cc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .splash-subtitle {
+            font-size: 1rem;
+            color: #94a3b8;
+            margin-bottom: 35px;
+        }
+        .splash-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .splash-btn {
+            flex: 1;
+            min-width: 240px;
+            padding: 30px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+        .splash-btn:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.07);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .splash-btn.btn-tr:hover {
+            border-color: rgba(239, 68, 68, 0.4);
+            box-shadow: 0 0 25px rgba(239, 68, 68, 0.15);
+        }
+        .splash-btn.btn-en:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+        }
+        .splash-btn .flag {
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            transition: transform 0.3s ease;
+        }
+        .splash-btn:hover .flag {
+            transform: scale(1.1);
+        }
+        .splash-btn .lang-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .splash-btn .lang-desc {
+            font-size: 0.85rem;
+            color: #64748b;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .splash-btn:hover .lang-desc {
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selection Splash Screen -->
+    <div id="language-splash" class="hidden">
+        <div class="splash-card">
+            <h1 class="splash-title">Dil Seçimi / Language Selection</h1>
+            <p class="splash-subtitle">Lütfen eğitim dilini seçin / Please select your training language</p>
+            <div class="splash-options">
+                <button id="btn-splash-tr" class="splash-btn btn-tr">
+                    <span class="flag">🇹🇷</span>
+                    <span class="lang-name">Türkçe</span>
+                    <span class="lang-desc">Linux komut satırı eğitimine Türkçe olarak devam et.</span>
+                </button>
+                <button id="btn-splash-en" class="splash-btn btn-en">
+                    <span class="flag">🇬🇧</span>
+                    <span class="lang-name">English</span>
+                    <span class="lang-desc">Continue the Linux command line training in English.</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <!-- Sol Panel: Eğitim İçeriği -->
+        <aside id="tutorial-panel">
+            <header>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center;">
+                        <button id="btn-sidebar-toggle" title="Müfredat Menüsü" style="background: none; border: none; color: var(--text-main); font-size: 1.5em; cursor: pointer; margin-right: 15px;">☰</button>
+                        <h1 style="margin-bottom: 0; font-size: 1.5em;">TLCL Eğitim</h1>
+                    </div>
+                    <div class="backup-tools" style="display: flex; gap: 8px;">
+                        <button id="btn-lang-en" title="Switch to English" style="background: rgba(234,179,8,0.2); border: 1px solid rgba(234,179,8,0.4); border-radius: 4px; color: #fef08a; cursor: pointer; padding: 4px 8px;">🇬🇧 EN</button>
+                        <button id="btn-info" title="Sistem Kullanım Rehberi" style="background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.4); border-radius: 4px; color: #93c5fd; cursor: pointer; padding: 4px 8px;">ℹ️ Bilgi</button>
+                        <button id="btn-backup" title="İlerlemeyi Yedekle (Backup)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer; padding: 4px 8px;">💾 İndir</button>
+                        <button id="btn-restore" title="Yedek Yükle (Restore)" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; color: white; cursor: pointer; padding: 4px 8px;">📂 Yükle</button>
+                        <button id="btn-reset" title="Eğitimi Baştan Başlat" style="background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.4); border-radius: 4px; color: #fca5a5; cursor: pointer; padding: 4px 8px;">🔄 Sıfırla</button>
+                        <input type="file" id="file-restore" accept=".json" style="display: none;">
+                    </div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="course-progress" style="width: 0%;"></div>
+                </div>
+                <span id="progress-text">Modül 1 / Ders 1.1</span>
+            </header>
+            
+            <div id="lesson-content" class="lesson-transition">
+                <h2 id="lesson-title">Yükleniyor...</h2>
+                <div class="lesson-text" id="lesson-text"></div>
+                <div class="task-box" id="task-box-container">
+                    <div class="task-badge">GÖREV</div>
+                    <div class="task-content">
+                        <span id="lesson-task"></span>
+                    </div>
+                    <button id="btn-next-lesson" class="btn-primary hidden">Sonraki Ders ➡️</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Sağ Panel: Terminal ve Dosya Sistemi -->
+        <section id="interactive-panel">
+            <div class="matrix-scanlines"></div>
+            <!-- Terminal Kutusu -->
+            <div id="terminal-wrapper" class="glass-panel">
+                <div class="panel-header">
+                    <div class="mac-buttons">
+                        <span class="close"></span>
+                        <span class="minimize"></span>
+                        <span class="maximize"></span>
+                    </div>
+                    <span class="panel-title">user@linux:~</span>
+                </div>
+                <div id="terminal-body" class="terminal-content">
+                    <div id="terminal-output">
+                        <div class="terminal-line"><span class="welcome-text">The Linux Command Line Etkileşimli Ortamına Hoş Geldiniz!</span></div>
+                        <div class="terminal-line"><span class="welcome-text">Kitapta geçen örnek scriptler <u>~/scripts/</u> klasöründedir.</span></div>
+                        <div class="terminal-line"><span class="welcome-text">Terminal hazır.</span></div>
+                    </div>
+                    <div class="terminal-input-line">
+                        <span id="terminal-prompt" class="prompt"></span>
+                        <input type="text" id="terminal-input" autofocus spellcheck="false" autocomplete="off">
+                    </div>
+                </div>
+                <!-- Vim Editor Simulation -->
+                <div id="vim-editor" class="hidden">
+                    <div id="vim-status-bar">
+                        <span id="vim-mode">NORMAL</span>
+                        <span id="vim-filename"></span>
+                    </div>
+                    <textarea id="vim-textarea" spellcheck="false"></textarea>
+                    <div id="vim-command-line"></div>
+                </div>
+            </div>
+
+            <!-- Dosya Sistemi Görselleştirmesi -->
+            <div id="filesystem-wrapper" class="glass-panel">
+                <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span class="panel-title">Görsel Dosya Sistemi Durumu</span>
+                    <div class="tree-controls" style="display: flex; gap: 8px;">
+                        <button id="btn-expand-all" class="btn-mini" title="Tümünü Aç">📂+</button>
+                        <button id="btn-collapse-all" class="btn-mini" title="Tümünü Kapat">📂-</button>
+                    </div>
+                </div>
+                <div id="filesystem-body">
+                    <!-- Dinamik ağaç yapısı buraya gelecek -->
+                    <ul class="fs-tree" id="fs-root">
+                        <!-- JS ile doldurulacak -->
+                    </ul>
+                </div>
+            </div>
+
+        </section>
+    </div>
+
+    <!-- Sidebar Drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay hidden"></div>
+    <div id="sidebar-drawer" class="sidebar-drawer hidden glass-panel">
+        <div class="sidebar-header">
+            <h2 style="margin: 0; font-size: 1.2rem;">📚 Müfredat</h2>
+            <button id="btn-close-sidebar" class="close-sidebar">&times;</button>
+        </div>
+        <!-- Kitap PDF Okuma Paneli -->
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color);">
+             <a href="assets/TLCL-25.12.pdf" target="_blank" style="display: flex; align-items: center; gap: 12px; background: rgba(64, 138, 113, 0.12); border: 1px solid rgba(64, 138, 113, 0.25); padding: 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); transition: all 0.25s ease;" onmouseover="this.style.background='rgba(64, 138, 113, 0.22)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(64, 138, 113, 0.12)'; this.style.borderColor='rgba(64, 138, 113, 0.25)'; this.style.transform='none';">
+                 <span style="font-size: 1.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">📖</span>
+                 <div style="display: flex; flex-direction: column; text-align: left; gap: 2px;">
+                     <span style="font-weight: 600; font-size: 0.95rem; letter-spacing: 0.3px;">The Linux Command Line</span>
+                     <span style="font-size: 0.78rem; color: var(--text-muted);">Eğitim Kitabını PDF Olarak Oku ↗</span>
+                 </div>
+             </a>
+        </div>
+        <div class="sidebar-body" id="sidebar-accordion">
+            <!-- JS ile doldurulacak -->
+        </div>
+    </div>
+
+    <!-- Bilgi Pop-up (Modal) -->
+    <div id="info-modal" class="modal-overlay hidden">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>Sistem Kullanım Rehberi</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h3>🚀 Eğitime Devam Etme</h3>
+                <p>Eğitimdeki ilerlemeniz ve oluşturduğunuz dosyalar <strong>otomatik olarak tarayıcınızın belleğine (cache) kaydedilir</strong>. Sayfayı kapatsanız dahi geri döndüğünüzde kaldığınız yerden devam edersiniz.</p>
+
+                <h3>📚 Müfredat ve Bölüm Seçimi</h3>
+                <p>Sol üst köşedeki <strong>☰ (Menü)</strong> butonuna tıklayarak tüm eğitim müfredatına ulaşabilir, tamamladığınız veya üzerinde çalıştığınız bölümleri görebilir ve istediğiniz bölüme hızlıca geçiş yapabilirsiniz.</p>
+                
+                <h3>📖 Eğitim Kitabı (PDF)</h3>
+                <p>Eğitime temel oluşturan William Shotts'ın ünlü <strong>"The Linux Command Line"</strong> kitabına, sol üstteki <strong>☰ (Müfredat)</strong> menüsünün en tepesindeki bağlantıdan doğrudan ulaşabilir, kitabı okurken bir yandan da buradaki terminalde pratik yapabilirsiniz.</p>
+
+                <h3>💾 İlerlemeyi Yedekleme (İndir)</h3>
+                <p>Eğer farklı bir tarayıcıya veya bilgisayara geçecekseniz, ya da sadece önlem almak istiyorsanız <strong>"İndir"</strong> butonunu kullanarak ilerlemenizi <code>tlcl_yedek.json</code> dosyası olarak bilgisayarınıza indirebilirsiniz.</p>
+
+                <h3>📂 Yedeği Geri Yükleme (Yükle)</h3>
+                <p>Önceden indirdiğiniz yedeği <strong>"Yükle"</strong> butonu ile seçerek sisteme geri yükleyebilir, eğitime ve dosyalarınıza aynen kaldığınız yerden devam edebilirsiniz.</p>
+
+                <h3>🔄 Eğitimi Sıfırlama</h3>
+                <p>Eğer her şeye en baştan başlamak isterseniz <strong>"Sıfırla"</strong> butonunu kullanabilirsiniz. Bu işlem, kayıtlı tüm dosyalarınızı ve ilerlemenizi tamamen siler.</p>
+
+                <h3>📜 Örnek Scriptler</h3>
+                <p>Kitapta bahsi geçen gerçek script örnekleri <code>/home/user/scripts/</code> dizinine önceden yüklenmiştir. Bu scriptleri <code>bash scripts/dosya_adi</code> şeklinde çalıştırarak deneyebilirsiniz.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-close-modal" class="btn-primary">Anladım, Başla!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onay Modalı (Custom Confirm) -->
+    <div id="confirm-modal" class="modal-overlay hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header">
+                <h2 id="confirm-title">⚠️ Onay Gerekli</h2>
+                <span class="close-modal" id="btn-close-confirm">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message" style="font-size: 1.1rem; text-align: center; padding: 10px 0;">Bu işlemi gerçekleştirmek istediğinizden emin misiniz?</p>
+            </div>
+            <div class="modal-footer" style="gap: 12px; display: flex; justify-content: center; border-top: none;">
+                <button id="btn-confirm-cancel" class="btn-mini" style="padding: 12px 24px; font-size: 0.9rem;">VAZGEÇ</button>
+                <button id="btn-confirm-ok" class="btn-primary" style="padding: 12px 24px; font-size: 0.9rem;">EVET, DEVAM ET</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div id="custom-context-menu" class="context-menu hidden">
+        <ul>
+            <li id="menu-paste">📋 Yapıştır</li>
+            <li id="menu-copy">📄 Seçileni Kopyala</li>
+            <li id="menu-clear">🧹 Ekranı Temizle</li>
+        </ul>
+    </div>
+
+    <script src="js/fs.js"></script>
+    <script src="js/processes.js"></script>
+    <script src="js/vim.js"></script>
+    <script src="js/commands.js"></script>
+    <script src="js/terminal.js"></script>
+    <script src="js/course.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const splash = document.getElementById('language-splash');
+            const btnSplashTr = document.getElementById('btn-splash-tr');
+            const btnSplashEn = document.getElementById('btn-splash-en');
+            const btnLangEn = document.getElementById('btn-lang-en');
+
+            // If no language is stored, ensure the splash screen is visible
+            const lang = localStorage.getItem('tlcl_lang');
+            if (!lang) {
+                if (splash) splash.classList.remove('hidden');
+            }
+
+            if (btnSplashTr) {
+                btnSplashTr.addEventListener('click', () => {
+                    localStorage.setItem('tlcl_lang', 'tr');
+                    document.documentElement.classList.add('lang-tr-set');
+                    if (splash) {
+                        splash.classList.add('hidden');
+                    }
+                    setTimeout(() => {
+                        window.showToast?.("Türkçe eğitim dili seçildi. İyi çalışmalar!", "success");
+                    }, 200);
+                });
+            }
+
+            if (btnSplashEn) {
+                btnSplashEn.addEventListener('click', () => {
+                    localStorage.setItem('tlcl_lang', 'en');
+                    window.location.href = 'en/index.html';
+                });
+            }
+
+            if (btnLangEn) {
+                btnLangEn.addEventListener('click', () => {
+                    localStorage.setItem('tlcl_lang', 'en');
+                    window.location.href = 'en/index.html';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

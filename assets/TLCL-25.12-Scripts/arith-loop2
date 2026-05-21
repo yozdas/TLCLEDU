@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# arith-loop2: script to demonstrate comma arithmetic operator
+
+a=0
+printf "a\ta**2\ta**3\n"
+printf "=\t====\t====\n"
+
+until (( a++, b=a**2, c=a**3, a>10 )); do
+  printf "%d\t%d\t%d\n" $a $b $c
+done

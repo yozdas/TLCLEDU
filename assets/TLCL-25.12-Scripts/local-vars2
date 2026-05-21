@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# local-vars2: script to demonstrate dynamic scoping
+
+# One unexpected "feature" of the shell is called dynamic scoping. This effects
+# the way local variables work within shell functions. When a function declares
+# a local variable that variable becomes global to any shell function that the
+# function calls.
+
+foo=0	# global variable foo
+
+funct_1 () { # print the current value of foo
+
+	echo "funct_1: foo = $foo"
+}
+
+funct_2 () {
+
+  local foo # local variable foo
+
+  foo=1
+  funct_1 # the local foo becomes the value for funct_1 rather than the global 
+  foo=2
+  funct_1
+}
+
+echo "global:  foo = $foo"
+funct_2

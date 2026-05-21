@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# eval-wordle - demonstrate eval by solving wordle puzzles
+
+PROGNAME=${0##*/}
+DICTIONARY=/usr/share/dict/words
+
+usage() {
+  printf "%s\n" "Usage: ${PROGNAME} [-h|--help]"
+  printf "%s\n" "       ${PROGNAME} regex +-char..."
+}
+
+help_message() {
+  cat << _EOF_
+$PROGNAME - Wordle Helper
+
+$(usage)
+
+Options:
+  -h, --help    Display this help message and exit.
+
+Arguments:
+
+  The first argument must be a five character regular
+  expression at minimum of '.....' representing five
+  unknown characters in the answer. This is followed by
+  zero or more character known to be either present or
+  absent from the answer. These are expressed as either
+  +char for letters known to be present or -char for
+  letters known to not be in the answer.
+
+Example:
+
+  $PROGNAME a.... +o -v
+
+  This means we know that the answer starts with 'a' in
+  the first postion and also contains an 'o' but does
+  not contain a 'v'.
+
+_EOF_
+
+return
+}
+
+add_plus() { # Add a letter
+  local char="$1"
+
+  echo " | grep $char"
+  return
+}
+
+add_minus() { # Sutraact a letter
+  local char="$1"
+
+  echo " | grep -v $char"
+  return
+}
+
+# Parse command-line
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  help_message
+  exit 0
+fi
+
+if (( "${#1}" == 5 )); then
+  known_chars="$1"
+  shift
+else
+  echo "First argument must be a 5 character regex." >&2
+  exit 1
+fi
+
+cmd="LANG=POSIX grep '^.....$' $DICTIONARY \
+  | grep -v '[[:punct:]]' \
+  | grep -v '[[:upper:]]' \
+  | grep '$known_chars'"
+
+while [[ -n "$1" ]]; do
+  case "$1" in
+    -[[:alpha:]])
+      cmd="${cmd}$(add_minus "${1:1}")"
+      ;;
+    +[[:alpha:]])
+      cmd="${cmd}$(add_plus "${1:1}")"
+      ;;
+    *)
+      echo "Invalid argument '$1'" >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+eval "$cmd | tee >(wc -l)"
+
