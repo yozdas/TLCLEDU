@@ -249,8 +249,8 @@
             <h2 style="margin: 0; font-size: 1.2rem;">📚 Müfredat</h2>
             <button id="btn-close-sidebar" class="close-sidebar">&times;</button>
         </div>
-        <!-- Kitap PDF Okuma Paneli -->
-        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color);">
+        <!-- Kitap PDF Okuma Paneli ve İletişim Bağlantıları -->
+        <div style="padding: 15px 20px; border-bottom: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 10px;">
              <a href="assets/TLCL-25.12.pdf" target="_blank" style="display: flex; align-items: center; gap: 12px; background: rgba(64, 138, 113, 0.12); border: 1px solid rgba(64, 138, 113, 0.25); padding: 12px; border-radius: 8px; text-decoration: none; color: var(--text-main); transition: all 0.25s ease;" onmouseover="this.style.background='rgba(64, 138, 113, 0.22)'; this.style.borderColor='var(--accent)'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='rgba(64, 138, 113, 0.12)'; this.style.borderColor='rgba(64, 138, 113, 0.25)'; this.style.transform='none';">
                  <span style="font-size: 1.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">📖</span>
                  <div style="display: flex; flex-direction: column; text-align: left; gap: 2px;">
@@ -258,6 +258,15 @@
                      <span style="font-size: 0.78rem; color: var(--text-muted);">Eğitim Kitabını PDF Olarak Oku ↗</span>
                  </div>
              </a>
+
+             <div style="display: flex; gap: 10px;">
+                 <a href="https://github.com/yozdas/TLCLEDU" target="_blank" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); padding: 8px; border-radius: 6px; text-decoration: none; color: var(--text-main); font-size: 0.85rem; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.3)';" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'; this.style.borderColor='rgba(255, 255, 255, 0.15)';">
+                     <span style="font-size: 1.1rem;">🐈</span> GitHub
+                 </a>
+                 <a href="https://github.com/yozdas/TLCLEDU/issues/new" target="_blank" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); padding: 8px; border-radius: 6px; text-decoration: none; color: #fca5a5; font-size: 0.85rem; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.borderColor='rgba(239, 68, 68, 0.3)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.08)'; this.style.borderColor='rgba(239, 68, 68, 0.2)';">
+                     <span style="font-size: 1.1rem;">🐞</span> Hata Bildir
+                 </a>
+             </div>
         </div>
         <div class="sidebar-body" id="sidebar-accordion">
             <!-- JS ile doldurulacak -->
