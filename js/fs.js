@@ -697,8 +697,8 @@ echo "REPLY = '$REPLY'"`);
 
     readFile(path) {
         const target = this.resolvePath(path);
-        if (!target) return { success: false, error: `cat: ${path}: No such file or directory` };
-        if (target.type === 'dir') return { success: false, error: `cat: ${path}: Is a directory` };
+        if (!target) return { success: false, error: `${path}: No such file or directory` };
+        if (target.type === 'dir') return { success: false, error: `${path}: Is a directory` };
         return { success: true, output: target.content };
     }
 
