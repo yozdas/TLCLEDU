@@ -58,7 +58,7 @@ class Terminal {
                     this.inputEl.value += text;
                     this.inputEl.focus();
                 } catch (err) {
-                    // Fallback or ignore
+                    console.warn('Failed to read clipboard contents:', err);
                 }
             };
         }

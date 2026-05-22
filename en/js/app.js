@@ -180,6 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.showToast("Backup successfully loaded! Reloading page...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } catch (err) {
+                    console.error('Failed to parse backup file:', err);
                     window.showToast("Backup file could not be read or is corrupted.", "error");
                 }
             };
