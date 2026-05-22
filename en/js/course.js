@@ -8,7 +8,7 @@ const courseData = [
     { id: "2.2", title: "Chapter 2: Shortcuts", description: "cd . and cd ..", text: "<code>.</code> represents the current directory, and <code>..</code> represents the parent directory.", task: "Type <code>cd ..</code> to go to the parent directory.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd, fs) => /cd\s+\.\./.test(cmd) },
     { id: "3.1", title: "Chapter 3: ls - Listing", description: "ls command.", text: "<code>ls</code> lists the contents of a directory.", task: "Type <code>ls</code>.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd) => /^ls(\s+.*)?$/.test(cmd) },
     { id: "3.2", title: "Chapter 3: ls -a and -l", description: "ls flags.", text: "<code>-a</code> lists all files, including hidden ones, while <code>-l</code> displays detailed information about files.", task: "Type <code>ls -al</code> to view all files with detailed info.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd) => /ls\s+.*-a.*l|ls\s+.*-l.*a/.test(cmd) },
-    { id: "4.1", title: "Chapter 4: cp - Copying", description: "cp command.", text: "<code>cp [source] [destination]</code> copies files.", task: "Copy the <code>readme.txt</code> file as <code>readme_copy.txt</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('readme_copy.txt') !== null },
+    { id: "4.1", title: "Chapter 4: cp - Copying", description: "cp command.", text: "<code>cp [source] [destination]</code> copies files.", task: "Copy the <code>readme.txt</code> file as <code>readme_copy.txt</code>.", unlocked: [...baseUnlocked], onEnter: (fs) => { if(fs.resolvePath('/home/user')) fs.currentDir = fs.resolvePath('/home/user'); }, checkCompletion: (cmd, fs) => fs.resolvePath('readme_copy.txt') !== null },
     { id: "4.2", title: "Chapter 4: mv - Moving", description: "mv command.", text: "<code>mv</code> moves or renames files.", task: "Rename <code>readme_copy.txt</code> to <code>document.txt</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('document.txt') !== null && fs.resolvePath('readme_copy.txt') === null },
     { id: "4.3", title: "Chapter 4: rm - Deleting", description: "rm command.", text: "<code>rm</code> permanently deletes files.", task: "Delete the <code>document.txt</code> file.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('document.txt') === null },
     { id: "5.1", title: "Chapter 5: help and type", description: "Learning command types.", text: "<code>type</code> displays the type of a command (builtin, alias, file, etc.).", task: "Type <code>type cd</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^type\s+cd$/.test(cmd) },
@@ -79,6 +79,17 @@ class CourseManager {
     renderCurrentLesson() {
         const lesson = this.lessons[this.currentIndex];
         if (!lesson) return;
+
+        // Ensure proper environment for this lesson if a setup function exists
+        if (lesson.onEnter && window.fs) {
+            lesson.onEnter(window.fs);
+            // Optionally save the state and update tree if needed
+            window.fs.saveState();
+            if (typeof window.updateFsTree === 'function') {
+                window.updateFsTree();
+            }
+        }
+
         document.getElementById('lesson-title').innerHTML = lesson.title;
         document.getElementById('lesson-text').innerHTML = lesson.text;
         
