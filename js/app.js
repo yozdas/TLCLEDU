@@ -171,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.showToast("Yedek başarıyla yüklendi! Sayfa yenileniyor...", "success");
                     setTimeout(() => window.location.reload(), 1500);
                 } catch (err) {
+                    console.error('Failed to parse backup file:', err);
                     window.showToast("Yedek dosyası okunamadı veya bozuk.", "error");
                 }
             };
