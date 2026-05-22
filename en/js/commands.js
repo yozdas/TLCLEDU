@@ -388,8 +388,8 @@ class CommandRegistry {
 
         this.register('printenv', (args, stdin, term, fs) => {
             let output = '';
-            for (const [key, val] of Object.entries(term.env)) {
-                output += `${key}=${val}\n`;
+            for (const key of Object.keys(term.env)) {
+                output += `${key}=${term.env[key]}\n`;
             }
             return { output: output.trim() };
         });
@@ -397,8 +397,8 @@ class CommandRegistry {
         this.register('export', (args, stdin, term, fs) => {
             if (args.length === 0) {
                 let output = '';
-                for (const [key, val] of Object.entries(term.env)) {
-                    output += `declare -x ${key}="${val}"\n`;
+                for (const key of Object.keys(term.env)) {
+                    output += `declare -x ${key}="${term.env[key]}"\n`;
                 }
                 return { output: output.trim() };
             }
@@ -413,8 +413,8 @@ class CommandRegistry {
         this.register('alias', (args, stdin, term, fs) => {
             if (args.length === 0) {
                 let output = '';
-                for (const [key, val] of Object.entries(term.aliases)) {
-                    output += `alias ${key}='${val}'\n`;
+                for (const key of Object.keys(term.aliases)) {
+                    output += `alias ${key}='${term.aliases[key]}'\n`;
                 }
                 return { output: output.trim() };
             }
@@ -870,8 +870,13 @@ class CommandRegistry {
 
         this.register('alias', (args, stdin, term) => {
             if (args.length === 0) {
-                const aliases = Object.entries(term.env).filter(([k,v]) => k.startsWith('alias_'));
-                return { output: aliases.map(([k,v]) => `alias ${k.substring(6)}='${v}'`).join('\n') };
+                const aliases = [];
+                for (const key of Object.keys(term.env)) {
+                    if (key.startsWith('alias_')) {
+                        aliases.push(`alias ${key.substring(6)}='${term.env[key]}'`);
+                    }
+                }
+                return { output: aliases.join('\n') };
             }
             const match = args[0].match(/^([a-zA-Z0-9_]+)=(.*)$/);
             if (match) {
