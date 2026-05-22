@@ -158,7 +158,7 @@ class CommandRegistry {
                 return { error: "cat: missing operand" };
             }
             const res = fs.readFile(args[0]);
-            return res.success ? { output: res.output } : { error: res.error };
+            return res.success ? { output: res.output } : { error: `cat: ${res.error}` };
         });
 
         this.register('echo', (args, stdin, term, fs) => {
@@ -177,7 +177,7 @@ class CommandRegistry {
 
             if (args.length > 1) { // Read from file
                 const res = fs.readFile(args[1]);
-                if (!res.success) return { error: res.error };
+                if (!res.success) return { error: `grep: ${res.error}` };
                 textToSearch = res.output;
             }
 
@@ -206,23 +206,54 @@ class CommandRegistry {
         this.register('wc', (args, stdin, term, fs) => {
             let text = stdin;
             let filename = '';
-            if (args.length > 0) {
-                const res = fs.readFile(args[0]);
-                if (!res.success) return { error: res.error };
+            let showLines = false, showWords = false, showChars = false;
+            let fileTarget = null;
+
+            args.forEach(arg => {
+                if (arg.startsWith('-')) {
+                    if (arg.includes('l')) showLines = true;
+                    if (arg.includes('w')) showWords = true;
+                    if (arg.includes('c') || arg.includes('m')) showChars = true;
+                } else {
+                    fileTarget = arg;
+                }
+            });
+
+            // Default behavior if no flags
+            if (!showLines && !showWords && !showChars) {
+                showLines = true;
+                showWords = true;
+                showChars = true;
+            }
+
+            if (fileTarget) {
+                const res = fs.readFile(fileTarget);
+                if (!res.success) return { error: `wc: ${res.error}` };
                 text = res.output;
-                filename = ' ' + args[0];
+                filename = ' ' + fileTarget;
             }
             if (text === null || text === undefined) text = '';
             
-            const lines = text === '' ? 0 : text.split('\n').length;
-            const words = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
-            const chars = text.length;
-            return { output: `${lines} ${words} ${chars}${filename}` };
+            const linesCount = text === '' ? 0 : text.split('\n').length;
+            const wordsCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            const charsCount = text.length;
+
+            let resultParts = [];
+            if (showLines) resultParts.push(linesCount);
+            if (showWords) resultParts.push(wordsCount);
+            if (showChars) resultParts.push(charsCount);
+
+            return { output: `${resultParts.join(' ')}${filename}` };
         });
 
         this.register('sort', (args, stdin, term, fs) => {
             const file = args[args.length - 1];
-            const input = stdin || (file && !file.startsWith('-') ? fs.readFile(file).output : '');
+            let input = stdin;
+            if (!input && file && !file.startsWith('-')) {
+                const res = fs.readFile(file);
+                if (!res.success) return { error: `sort: ${res.error}` };
+                input = res.output;
+            }
             if (!input) return { output: '' };
             const lines = input.split('\n').filter(l => l.trim() !== '');
             return { output: lines.sort().join('\n') };
@@ -277,7 +308,7 @@ class CommandRegistry {
 
             if (fileTarget) {
                 const res = fs.readFile(fileTarget);
-                if (!res.success) return { error: res.error };
+                if (!res.success) return { error: `head: ${res.error}` };
                 text = res.output;
             }
 
@@ -299,7 +330,7 @@ class CommandRegistry {
 
             if (fileTarget) {
                 const res = fs.readFile(fileTarget);
-                if (!res.success) return { error: res.error };
+                if (!res.success) return { error: `tail: ${res.error}` };
                 text = res.output;
             }
 
