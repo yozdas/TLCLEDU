@@ -310,6 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
         fsRoot.innerHTML = '';
         fsRoot.appendChild(renderTree(window.fs.root));
     };
+    window.updateFsTree = updateFsTree;
 
     // Tümünü Aç/Kapat Butonları
     document.getElementById('btn-expand-all')?.addEventListener('click', () => {

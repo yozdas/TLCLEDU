@@ -8,7 +8,7 @@ const courseData = [
     { id: "2.2", title: "Bölüm 2: Kısayollar", description: "cd . ve cd ..", text: "<code>.</code> geçerli dizini, <code>..</code> bir üst dizini temsil eder.", task: "Bir üst dizine gitmek için <code>cd ..</code> yazın.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd, fs) => /cd\s+\.\./.test(cmd) },
     { id: "3.1", title: "Bölüm 3: ls - Listeleme", description: "ls komutu.", text: "<code>ls</code> dizin içeriğini listeler.", task: "<code>ls</code> yazın.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd) => /^ls(\s+.*)?$/.test(cmd) },
     { id: "3.2", title: "Bölüm 3: ls -a ve -l", description: "ls bayrakları.", text: "<code>-a</code> gizli dosyaları gösterir, <code>-l</code> detaylı bilgi verir.", task: "Tüm dosyaları detaylı görmek için <code>ls -al</code> yazın.", unlocked: ['pwd', 'clear', 'ls', 'cd'], checkCompletion: (cmd) => /ls\s+.*-a.*l|ls\s+.*-l.*a/.test(cmd) },
-    { id: "4.1", title: "Bölüm 4: cp - Kopyalama", description: "cp komutu.", text: "<code>cp [kaynak] [hedef]</code> dosyaları kopyalar.", task: "<code>readme.txt</code> dosyasını <code>readme_kopya.txt</code> olarak kopyalayın.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('readme_kopya.txt') !== null },
+    { id: "4.1", title: "Bölüm 4: cp - Kopyalama", description: "cp komutu.", text: "<code>cp [kaynak] [hedef]</code> dosyaları kopyalar.", task: "<code>readme.txt</code> dosyasını <code>readme_kopya.txt</code> olarak kopyalayın.", unlocked: [...baseUnlocked], onEnter: (fs) => { if(fs.resolvePath('/home/user')) fs.currentDir = fs.resolvePath('/home/user'); }, checkCompletion: (cmd, fs) => fs.resolvePath('readme_kopya.txt') !== null },
     { id: "4.2", title: "Bölüm 4: mv - Taşıma", description: "mv komutu.", text: "<code>mv</code> dosyaları taşır veya ismini değiştirir.", task: "<code>readme_kopya.txt</code> ismini <code>belge.txt</code> yapın.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('belge.txt') !== null && fs.resolvePath('readme_kopya.txt') === null },
     { id: "4.3", title: "Bölüm 4: rm - Silme", description: "rm komutu.", text: "<code>rm</code> dosyaları kalıcı olarak siler.", task: "<code>belge.txt</code> dosyasını silin.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('belge.txt') === null },
     { id: "5.1", title: "Bölüm 5: help ve type", description: "Komut bilgilerini öğrenme.", text: "<code>type</code> komutun türünü (builtin, alias, file) söyler.", task: "<code>type cd</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^type\s+cd$/.test(cmd) },
@@ -79,6 +79,17 @@ class CourseManager {
     renderCurrentLesson() {
         const lesson = this.lessons[this.currentIndex];
         if (!lesson) return;
+
+        // Ensure proper environment for this lesson if a setup function exists
+        if (lesson.onEnter && window.fs) {
+            lesson.onEnter(window.fs);
+            // Optionally save the state and update tree if needed
+            window.fs.saveState();
+            if (typeof window.updateFsTree === 'function') {
+                window.updateFsTree();
+            }
+        }
+
         document.getElementById('lesson-title').innerHTML = lesson.title;
         document.getElementById('lesson-text').innerHTML = lesson.text;
         
