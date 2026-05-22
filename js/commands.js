@@ -1053,14 +1053,19 @@ class CommandRegistry {
             let filePath = '';
 
             for (let i = 0; i < args.length; i++) {
-                if (args[i].startsWith('-d')) {
-                    delimiter = args[i].substring(2) || args[++i];
-                } else if (args[i].startsWith('-f')) {
-                    fields = (args[i].substring(2) || args[++i]).split(',').map(n => parseInt(n));
-                } else if (args[i].startsWith('-c')) {
-                    characters = args[i].substring(2) || args[++i];
-                } else if (!args[i].startsWith('-')) {
-                    filePath = args[i];
+                const arg = args[i];
+                if (arg[0] !== '-') {
+                    filePath = arg;
+                    continue;
+                }
+
+                const flag = arg[1];
+                if (flag === 'd') {
+                    delimiter = arg.substring(2) || args[++i];
+                } else if (flag === 'f') {
+                    fields = (arg.substring(2) || args[++i]).split(',').map(n => parseInt(n));
+                } else if (flag === 'c') {
+                    characters = arg.substring(2) || args[++i];
                 }
             }
 
