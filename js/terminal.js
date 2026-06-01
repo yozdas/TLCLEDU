@@ -353,7 +353,7 @@ class Terminal {
             cmdSpan.textContent = html;
             div.appendChild(cmdSpan);
         } else {
-            div.innerHTML = html;
+            div.innerHTML = typeof window !== 'undefined' && window.DOMPurify ? window.DOMPurify.sanitize(html) : html.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[t] || t));
         }
         this.outputDiv.appendChild(div);
         
@@ -757,7 +757,7 @@ class Terminal {
     printOutput(html) {
         const div = document.createElement('div');
         div.className = 'terminal-line';
-        div.innerHTML = html;
+        div.innerHTML = typeof window !== 'undefined' && window.DOMPurify ? window.DOMPurify.sanitize(html) : html.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[t] || t));
         this.outputDiv.appendChild(div);
         this.outputDiv.scrollTop = this.outputDiv.scrollHeight;
     }
