@@ -23,7 +23,15 @@ const courseData = [
 
     // --- PART 2: Configuration and Environment ---
     { id: "11.1", title: "Chapter 11: Environment", description: "printenv.", text: "View environment variables with the <code>printenv</code> command.", task: "Type <code>printenv HOME</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /printenv\s+HOME/.test(cmd) },
-    { id: "12.1", title: "Chapter 12: Vi Editor", description: "vi editor basics.", text: "<code>vi</code> is a classic text editor on Unix-like operating systems.", task: "Type <code>vi test.txt</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^vi\s+test\.txt$/.test(cmd) },
+    { id: "12.1", title: "Chapter 12: A Gentle Introduction to vi", description: "Using vi.", text: "Linux's classic editor <code>vi</code>.<br>You can enter the file, switch to INSERT mode with <code>i</code>, type something, then press ESC and exit with <code>:wq</code>.", task: "Type <code>vi test.txt</code> and exit the file (<code>:wq</code>).", unlocked: [...baseUnlocked], customCheck: true, onEnter: (fs) => {
+        const checkViExit = () => {
+            if (fs.resolvePath('test.txt')) {
+                window.courseManager.completeLesson();
+                window.removeEventListener('vi_exit', checkViExit);
+            }
+        };
+        window.addEventListener('vi_exit', checkViExit);
+    }, checkCompletion: (cmd) => false },
     { id: "13.1", title: "Chapter 13: Prompt Customization", description: "PS1 variable.", text: "The <code>PS1</code> environment variable defines your command prompt.", task: "Type <code>export PS1=\"test$ \"</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs, term) => term.env['PS1'] === 'test$ ' },
 
     // --- PART 3: Common Tasks ---
@@ -32,9 +40,9 @@ const courseData = [
     { id: "16.1", title: "Chapter 16: Networking", description: "ping.", text: "Test network connection.", task: "Type <code>ping 8.8.8.8</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /ping\s+8\.8\.8\.8/.test(cmd) },
     { id: "17.1", title: "Chapter 17: Searching - find", description: "find command.", text: "<code>find</code> is the most powerful tool to search for files in a directory hierarchy.", task: "Type <code>find . -name \"*.sh\"</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /find\s+\.\s+-name/.test(cmd) },
     { id: "18.1", title: "Chapter 18: Archiving", description: "tar and gzip.", text: "<code>tar</code> groups files into an archive, while <code>gzip</code> compresses them.", task: "Type <code>tar -czf scripts.tar.gz scripts/</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('scripts.tar.gz') !== null },
-    { id: "19.1", title: "Chapter 19: Text Processing", description: "grep.", text: "Use <code>grep</code> to search for text patterns inside files.", task: "Type <code>grep \"root\" /etc/passwd</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /grep\s+.*\/etc\/passwd/.test(cmd) },
-    { id: "20.1", title: "Chapter 20: sed - Text Editing", description: "sed s///g.", text: "<code>sed</code> performs basic text transformations on an input stream (stream editor).", task: "Type <code>echo \"hello world\" | sed 's/hello/hi/'</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /sed\s+.*s\/hello\/hi/.test(cmd) },
-    { id: "20.2", title: "Chapter 20: awk - Column Processing", description: "awk '{print $1}'.", text: "<code>awk</code> parses files into fields/columns.", task: "Type <code>awk -F: '{print $1}' /etc/passwd</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /awk\s+.*\$1/.test(cmd) },
+    { id: "19.1", title: "Chapter 19: Text Processing", description: "grep.", text: "Search for patterns within text using <code>grep</code>.", task: "Type <code>grep \"root\" /etc/passwd</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('grep') && cmd.includes('root') && cmd.includes('passwd') },
+    { id: "20.1", title: "Chapter 20: sed - Stream Editor", description: "sed s///g.", text: "<code>sed</code> performs line-based editing.", task: "Type <code>echo \"hello world\" | sed 's/hello/hi/'</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('sed') && cmd.includes('hello/hi') },
+    { id: "20.2", title: "Chapter 20: awk - Column Processing", description: "awk '{print $1}'.", text: "<code>awk</code> splits data into columns.", task: "Type <code>awk -F: '{print $1}' /etc/passwd</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('awk') && cmd.includes('$1') && cmd.includes('passwd') },
     { id: "21.1", title: "Chapter 21: Formatting Output", description: "pr.", text: "Format text for printing.", task: "Type <code>pr file.txt</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /pr\s+file\.txt/.test(cmd) },
     { id: "22.1", title: "Chapter 22: Printing", description: "lpr.", text: "Send files to printer.", task: "Type <code>lpr file.txt</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /lpr\s+file\.txt/.test(cmd) },
     { id: "23.1", title: "Chapter 23: Compiling Programs", description: "make.", text: "Build automation tool.", task: "Type <code>make</code>.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^make(\s+.*)?$/.test(cmd) },

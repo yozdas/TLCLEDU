@@ -23,7 +23,15 @@ const courseData = [
 
     // --- KISIM 2: Yapılandırma ve Ortam ---
     { id: "11.1", title: "Bölüm 11: Ortam", description: "printenv.", text: "Ortam değişkenlerini <code>printenv</code> ile görün.", task: "<code>printenv HOME</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /printenv\s+HOME/.test(cmd) },
-    { id: "12.1", title: "Bölüm 12: Vi Editörü", description: "vi kullanımı.", text: "Linux'un klasik editörü <code>vi</code>.", task: "<code>vi deneme.txt</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^vi\s+deneme\.txt$/.test(cmd) },
+    { id: "12.1", title: "Bölüm 12: Vi Editörü", description: "vi kullanımı.", text: "Linux'un klasik editörü <code>vi</code>.<br>Dosyaya girip <code>i</code> ile INSERT moda geçip bir şeyler yazıp, ardından ESC basıp <code>:wq</code> ile çıkabilirsiniz.", task: "<code>vi deneme.txt</code> yazın ve dosyadan çıkın (<code>:wq</code>).", unlocked: [...baseUnlocked], customCheck: true, onEnter: (fs) => {
+        const checkViExit = () => {
+            if (fs.resolvePath('deneme.txt')) {
+                window.courseManager.completeLesson();
+                window.removeEventListener('vi_exit', checkViExit);
+            }
+        };
+        window.addEventListener('vi_exit', checkViExit);
+    }, checkCompletion: (cmd) => false },
     { id: "13.1", title: "Bölüm 13: Prompt Özelleştirme", description: "PS1 değişkeni.", text: "<code>PS1</code> değişkeni komut istemini belirler.", task: "<code>export PS1=\"test$ \"</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs, term) => term.env['PS1'] === 'test$ ' },
 
     // --- KISIM 3: Ortak Görevler ---
@@ -32,9 +40,9 @@ const courseData = [
     { id: "16.1", title: "Bölüm 16: Ağ İletişimi", description: "ping.", text: "Ağ bağlantısını test eder.", task: "<code>ping 8.8.8.8</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /ping\s+8\.8\.8\.8/.test(cmd) },
     { id: "17.1", title: "Bölüm 17: Arama - find", description: "find komutu.", text: "Dosyaları bulmak için en güçlü araç <code>find</code>'dır.", task: "<code>find . -name \"*.sh\"</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /find\s+\.\s+-name/.test(cmd) },
     { id: "18.1", title: "Bölüm 18: Arşivleme", description: "tar ve gzip.", text: "<code>tar</code> paketler, <code>gzip</code> sıkıştırır.", task: "<code>tar -czf scripts.tar.gz scripts/</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd, fs) => fs.resolvePath('scripts.tar.gz') !== null },
-    { id: "19.1", title: "Bölüm 19: Metin İşleme", description: "grep.", text: "Metin içinde desen aramak için <code>grep</code>.", task: "<code>grep \"root\" /etc/passwd</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /grep\s+.*\/etc\/passwd/.test(cmd) },
-    { id: "20.1", title: "Bölüm 20: sed - Metin Düzenleme", description: "sed s///g.", text: "<code>sed</code> satır bazlı düzenleme yapar.", task: "<code>echo \"hello world\" | sed 's/hello/hi/'</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /sed\s+.*s\/hello\/hi/.test(cmd) },
-    { id: "20.2", title: "Bölüm 20: awk - Sütun İşleme", description: "awk '{print $1}'.", text: "<code>awk</code> verileri sütunlara böler.", task: "<code>awk -F: '{print $1}' /etc/passwd</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /awk\s+.*\$1/.test(cmd) },
+    { id: "19.1", title: "Bölüm 19: Metin İşleme", description: "grep.", text: "Metin içinde desen aramak için <code>grep</code>.", task: "<code>grep \"root\" /etc/passwd</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('grep') && cmd.includes('root') && cmd.includes('passwd') },
+    { id: "20.1", title: "Bölüm 20: sed - Metin Düzenleme", description: "sed s///g.", text: "<code>sed</code> satır bazlı düzenleme yapar.", task: "<code>echo \"hello world\" | sed 's/hello/hi/'</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('sed') && cmd.includes('hello/hi') },
+    { id: "20.2", title: "Bölüm 20: awk - Sütun İşleme", description: "awk '{print $1}'.", text: "<code>awk</code> verileri sütunlara böler.", task: "<code>awk -F: '{print $1}' /etc/passwd</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => cmd.includes('awk') && cmd.includes('$1') && cmd.includes('passwd') },
     { id: "21.1", title: "Bölüm 21: Çıktı Biçimlendirme", description: "pr.", text: "Yazdırmak için metni biçimlendirir.", task: "<code>pr dosya.txt</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /pr\s+dosya\.txt/.test(cmd) },
     { id: "22.1", title: "Bölüm 22: Yazdırma", description: "lpr.", text: "Dosyaları yazıcıya gönderir.", task: "<code>lpr dosya.txt</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /lpr\s+dosya\.txt/.test(cmd) },
     { id: "23.1", title: "Bölüm 23: Program Derleme", description: "make.", text: "Yapı otomasyon aracı.", task: "<code>make</code> yazın.", unlocked: [...baseUnlocked], checkCompletion: (cmd) => /^make(\s+.*)?$/.test(cmd) },

@@ -1,0 +1,29 @@
+--- vim.js
++++ vim.js
+@@ -107,6 +107,8 @@
+             this.term.input.focus();
+             this.term.printLine(`"${this.filename}" ${lines}L, ${chars}C written`);
+             this.active = false;
++
++            window.dispatchEvent(new Event('vi_exit'));
+         }
+
+         quit() {
+@@ -115,6 +117,8 @@
+             this.container.classList.add('hidden');
+             this.term.input.focus();
+             this.active = false;
++
++            window.dispatchEvent(new Event('vi_exit'));
+         }
+
+         forceQuit() {
+@@ -122,6 +126,8 @@
+             this.container.classList.add('hidden');
+             this.term.input.focus();
+             this.active = false;
++
++            window.dispatchEvent(new Event('vi_exit'));
+         }
+
+         render() {
