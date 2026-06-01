@@ -6,12 +6,12 @@ class VimEditor {
         this.modeEl = document.getElementById('vim-mode');
         this.filenameEl = document.getElementById('vim-filename');
         this.commandLine = document.getElementById('vim-command-line');
-        
+
         this.active = false;
         this.mode = 'NORMAL'; // NORMAL, INSERT, COMMAND
         this.filename = '';
         this.command = '';
-        
+
         this.setupEventListeners();
     }
 
@@ -24,7 +24,7 @@ class VimEditor {
         this.updateUI();
         this.container.classList.remove('hidden');
         this.textarea.focus();
-        
+
         // Disable terminal input
         this.terminal.inputEl.disabled = true;
     }
@@ -34,7 +34,6 @@ class VimEditor {
         this.container.classList.add('hidden');
         this.terminal.inputEl.disabled = false;
         this.terminal.inputEl.focus();
-        window.dispatchEvent(new Event('vi_exit'));
     }
 
     updateUI() {
@@ -42,10 +41,10 @@ class VimEditor {
         let modeColor = '#408A71'; // Normal (Medium Green)
         if (this.mode === 'INSERT') modeColor = '#B0E4CC'; // Insert (Light Mint)
         if (this.mode === 'COMMAND') modeColor = '#10b981'; // Command (Success Green)
-        
+
         this.modeEl.style.backgroundColor = modeColor;
         this.commandLine.textContent = this.mode === 'COMMAND' ? ':' + this.command : '';
-        
+
         if (this.mode === 'COMMAND') {
             this.commandLine.style.display = 'block';
         } else {

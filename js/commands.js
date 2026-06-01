@@ -466,24 +466,6 @@ class CommandRegistry {
             return { output: output.trim() };
         });
 
-        this.register('vi', (args, stdin, term, fs) => {
-            if (args.length === 0) {
-                return { error: 'vi: usage: vi filename' };
-            }
-            const filename = args[0];
-            let content = '';
-            const readRes = fs.readFile(filename);
-            if (readRes.success) {
-                content = readRes.output;
-            }
-            
-            if (term.vim) {
-                term.vim.open(filename, content);
-                return { output: '', silent: true };
-            }
-            return { error: 'vi: editor not initialized' };
-        });
-
         this.register('apt', (args, stdin, term, fs) => {
             const sub = args[0];
             if (sub === 'update') {
@@ -865,8 +847,14 @@ class CommandRegistry {
             return { output: filtered.length > 0 ? filtered.map(f => f.path).join('\n') : '' };
         });
 
-        this.register('tar', (args) => {
-            if (args.includes('c') || args.includes('-c')) return { output: 'tar: Archive created successfully.' };
+        this.register('tar', (args, stdin, term, fs) => {
+            if (args.includes('c') || args.includes('-c') || args.includes('-czf') || args.includes('czf')) {
+                let target = args.find(a => a.endsWith('.tar') || a.endsWith('.tar.gz'));
+                if (target && fs) {
+                    fs.writeFile(target, 'mock archive content');
+                }
+                return { output: 'tar: Archive created successfully.' };
+            }
             if (args.includes('x') || args.includes('-x')) return { output: 'tar: Archive extracted successfully.' };
             return { output: 'tar: [options] [archive] [files...]' };
         });
@@ -946,6 +934,10 @@ class CommandRegistry {
             
             term.vim.open(filename, content);
             return { output: '', noPrint: true };
+        });
+
+        this.register('vim', (args, stdin, term) => {
+            return this.commands.vi(args, stdin, term);
         });
 
         this.register('sed', (args, stdin, term, fs) => {
