@@ -767,6 +767,9 @@ class CommandRegistry {
                                  .replace(/print/g, '')
                                  .replace(/\^/g, '**')
                                  .replace(/;/g, '\n')
+                                 .replace(/\\n/g, '')
+                                 .replace(/["']/g, '')
+                                 .replace(/,/g, '')
                                  .trim();
                 
                 if (clean.includes('t +=') || clean.includes('t /')) {
@@ -783,9 +786,46 @@ class CommandRegistry {
                     return { output: t.toString() };
                 }
                 
-                // Evaluate the expression
-                const result = eval(clean);
-                return { output: result !== undefined ? result.toString() : '' };
+                // Evaluate the expression safely
+                let lines = clean.split('\n');
+                let vars = {};
+                let lastResult = '';
+
+                for (let line of lines) {
+                    line = line.trim();
+                    if (!line) continue;
+
+                    let targetVar = null;
+                    let expr = line;
+
+                    const eqIdx = line.indexOf('=');
+                    if (eqIdx !== -1) {
+                        targetVar = line.substring(0, eqIdx).trim();
+                        expr = line.substring(eqIdx + 1).trim();
+                    }
+
+                    // Replace variables with their numeric values
+                    const sortedVars = Object.keys(vars).sort((a, b) => b.length - a.length);
+                    for (const v of sortedVars) {
+                        const regex = new RegExp(`\\b${v}\\b`, 'g');
+                        expr = expr.replace(regex, vars[v]);
+                    }
+
+                    // Security check: only allow math characters
+                    if (!/^[0-9.+\-*/() \t**]*$/.test(expr)) {
+                        throw new Error("Invalid expression");
+                    }
+
+                    const res = new Function(`return ${expr}`)();
+
+                    if (targetVar) {
+                        vars[targetVar] = res;
+                    } else {
+                        lastResult = res;
+                    }
+                }
+
+                return { output: lastResult !== undefined ? lastResult.toString() : '' };
             } catch(e) { return { output: '0' }; }
         });
 
