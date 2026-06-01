@@ -886,8 +886,12 @@ class Terminal {
                 if (match === 'true' || match === 'false') return match;
                 return this.env[match] !== undefined ? this.env[match] : match;
             });
+
+            expr = expr.replace(/\btrue\b/g, '1').replace(/\bfalse\b/g, '0');
+            if (/[^0-9eE\s+\-*/%().<>=!&|?:^]/.test(expr)) return false;
+
             try {
-                return eval(expr);
+                return Function('"use strict"; return (' + expr + ')')();
             } catch (e) { return false; }
         }
         
