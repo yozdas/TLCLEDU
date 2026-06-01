@@ -665,7 +665,7 @@ class CommandRegistry {
             if (!target.success) return { error: `bash: ${file}: No such file or directory` };
             
             const lines = target.output.split('\n').filter(l => l.trim() !== '' && !l.startsWith('#'));
-            term.printLine(`<span style="color: var(--accent)">[bash] Running ${file}...</span>`);
+            term.printLine(`<span style="color: var(--accent)">[bash] Running ${term.escapeHTML(file)}...</span>`);
             
             // Execute each line
             for (const line of lines) {
@@ -841,7 +841,7 @@ class CommandRegistry {
             // Unsupported flags check
             const unsupported = args.filter(a => a.startsWith('-') && !['-type', '-name'].includes(a));
             if (unsupported.length > 0) {
-                term.printLine(`<span style="color: var(--text-muted)">[Bilgi] find: '${unsupported[0]}' özelliği henüz simüle edilmedi, ancak temel arama devam ediyor...</span>`);
+                term.printLine(`<span style="color: var(--text-muted)">[Bilgi] find: '${term.escapeHTML(unsupported[0])}' özelliği henüz simüle edilmedi, ancak temel arama devam ediyor...</span>`);
             }
             
             return { output: filtered.length > 0 ? filtered.map(f => f.path).join('\n') : '' };

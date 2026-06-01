@@ -15,7 +15,7 @@ class ProcessManager {
         
         // Simulate background execution
         // Since we are in a single-threaded JS environment, we just log it
-        terminal.printLine(`[${job.id}] ${job.command} &`);
+        terminal.printLine(`[${terminal.escapeHTML(job.id)}] ${terminal.escapeHTML(job.command)} &`);
         
         // Some jobs might "finish" automatically for simulation
         if (!command.includes('sleep')) {
