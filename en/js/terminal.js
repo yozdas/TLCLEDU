@@ -149,7 +149,7 @@ class Terminal {
             this.inputEl.value = parts.join(' ');
         } else if (matches.length > 1) {
             this.printLine(inputStr, true);
-            this.printLine(matches.join('  '));
+            this.printLine(this.escapeHTML(matches.join('  ')));
             this.updatePrompt();
         }
     }
@@ -331,6 +331,16 @@ class Terminal {
         return str;
     }
 
+    escapeHTML(str) {
+        if (str === null || str === undefined) return "";
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     getVar(name) {
         // Local scopes (reverse)
         for (let i = this.localScopes.length - 1; i >= 0; i--) {
@@ -417,7 +427,7 @@ class Terminal {
             this.historyIndex = -1;
         } else {
             // Continuation line
-            this.printOutput(`<span class="prompt-continuation">> </span>${cmdString}\n`);
+            this.printOutput(`<span class="prompt-continuation">> </span>${this.escapeHTML(cmdString)}\n`);
         }
 
         const segments = finalCmd.split(';').map(c => c.trim()).filter(c => c.length > 0);
@@ -668,7 +678,7 @@ class Terminal {
             cmdArgs = this.expandArgs(cmdArgs);
             
             if (this.xtrace) {
-                this.printLine(`<span style="color: var(--text-muted)">+ ${cmdName} ${cmdArgs.join(' ')}</span>`);
+                this.printLine(`<span style="color: var(--text-muted)">+ ${this.escapeHTML(cmdName)} ${this.escapeHTML(cmdArgs.join(' '))}</span>`);
             }
             
             // Priority: Functions > Builtins
@@ -701,7 +711,7 @@ class Terminal {
             
             if (window.courseManager && !isUnlocked) {
                 const unlockingLesson = window.courseManager.lessons.find(l => l.unlocked && l.unlocked.includes(cmdName));
-                const hint = unlockingLesson ? ` (You will learn this command in Chapter ${unlockingLesson.id.split('.')[0]})` : '';
+                const hint = unlockingLesson ? ` (You will learn this command in Chapter ${this.escapeHTML(unlockingLesson.id.split('.')[0])})` : '';
                 const errMsg = `bash: ${cmdName}: command not learned yet${hint}`;
                 if (redirectErr || errToOut) {
                     if (errToOut && redirectOut) {
@@ -710,7 +720,7 @@ class Terminal {
                         this.fs[appendErr ? 'appendFile' : 'writeFile'](redirectErr, errMsg + '\n');
                     }
                 } else {
-                    this.printLine(`<span style="color: #ef4444">${errMsg}</span>`);
+                    this.printLine(`<span style="color: #ef4444">${this.escapeHTML(errMsg)}</span>`);
                 }
                 this.env['?'] = 127;
                 return false;
@@ -727,7 +737,7 @@ class Terminal {
                         this.fs[appendErr ? 'appendFile' : 'writeFile'](redirectErr, errMsg + '\n');
                     }
                 } else {
-                    this.printLine(`<span style="color: #ef4444">${errMsg}</span>`);
+                    this.printLine(`<span style="color: #ef4444">${this.escapeHTML(errMsg)}</span>`);
                 }
                 this.env['?'] = 1;
                 return false;
@@ -744,7 +754,8 @@ class Terminal {
                     }
                 } else {
                     if (!result.noPrint && currentStdin !== undefined && currentStdin !== null && currentStdin !== '') {
-                        const formatted = currentStdin.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
+                        const escaped = this.escapeHTML(currentStdin);
+                        const formatted = escaped.replace(/\n/g, '<br>').replace(/ /g, '&nbsp;');
                         this.printLine(formatted);
                     }
                 }
