@@ -23,7 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (type === 'success') icon = '✅';
         else if (type === 'error') icon = '❌';
 
-        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+        const iconSpan = document.createElement('span');
+        iconSpan.textContent = icon;
+
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+
+        toast.appendChild(iconSpan);
+        toast.appendChild(document.createTextNode(' '));
+        toast.appendChild(messageSpan);
+
         container.appendChild(toast);
 
         // Animation in
