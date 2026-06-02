@@ -5,7 +5,7 @@ function runTestsForFile(filepath) {
     console.log(`\nTesting ${filepath}...`);
     // Simple way to load the VimEditor class for node
     let code = fs.readFileSync(filepath, 'utf-8');
-    const tempFile = `tests/vim_temp_${Date.now()}.js`;
+    const tempFile = `tests/vim_temp_${Date.now() + "_" + Math.random().toString(36).substring(7)}.js`;
     const script = `
 ${code}
 module.exports = { VimEditor };

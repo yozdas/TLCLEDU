@@ -6,7 +6,7 @@ function runTestsForFile(filepath) {
     // Simple way to load the Terminal class for node
     let code = fs.readFileSync(filepath, 'utf-8');
     code = code.replace('window.Terminal = Terminal;', '');
-    const tempFile = `tests/terminal_temp_${Date.now()}.js`;
+    const tempFile = `tests/terminal_temp_${Date.now() + "_" + Math.random().toString(36).substring(7)}.js`;
     const script = `
 ${code}
 module.exports = { Terminal };
