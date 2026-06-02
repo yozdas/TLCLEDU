@@ -418,11 +418,7 @@ class CommandRegistry {
         });
 
         this.register('printenv', (args, stdin, term, fs) => {
-            let output = '';
-            for (const key of Object.keys(term.env)) {
-                output += `${key}=${term.env[key]}\n`;
-            }
-            return { output: output.trim() };
+            return { output: Object.keys(term.env).map(key => `${key}=${term.env[key]}`).join('\n') };
         });
 
         this.register('export', (args, stdin, term, fs) => {
