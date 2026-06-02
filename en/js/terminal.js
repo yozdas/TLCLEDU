@@ -786,18 +786,93 @@ class Terminal {
         }
 
         if (fullCommand.startsWith('if')) {
-            const thenIdx = fullCommand.indexOf('; then');
-            const elseIdx = fullCommand.indexOf('; else');
-            const fiIdx = fullCommand.lastIndexOf('; fi');
+            let depth = 0;
+            let blocks = [{ condition: [], cmds: [] }];
+            let currentPart = 'condition';
+            let currentBlock = 0;
             
-            const condition = fullCommand.substring(3, thenIdx).trim();
-            const thenPart = fullCommand.substring(thenIdx + 6, elseIdx !== -1 ? elseIdx : fiIdx).trim();
-            const elsePart = elseIdx !== -1 ? fullCommand.substring(elseIdx + 6, fiIdx).trim() : null;
+            let endIndex = -1;
 
-            if (this.evaluateCondition(condition)) {
-                thenPart.split(';').forEach(cmd => this.processCommand(cmd.trim()));
-            } else if (elsePart) {
-                elsePart.split(';').forEach(cmd => this.processCommand(cmd.trim()));
+            for (let i = 0; i < lines.length; i++) {
+                let seg = lines[i];
+                let tokens = this.tokenize(seg);
+                if (tokens.length === 0) continue;
+
+                let first = tokens[0];
+
+                if (first === 'if') {
+                    if (depth === 0) seg = seg.substring(seg.indexOf('if') + 2).trim();
+                    depth++;
+                } else if (first === 'then') {
+                    if (tokens[1] === 'if') {
+                        if (depth === 1) {
+                            currentPart = 'then';
+                            seg = seg.substring(seg.indexOf('then') + 4).trim();
+                        }
+                        depth++;
+                    } else if (depth === 1) {
+                        currentPart = 'then';
+                        let rest = seg.substring(seg.indexOf('then') + 4).trim();
+                        if (rest) blocks[currentBlock].cmds.push(rest);
+                        continue;
+                    }
+                } else if (first === 'elif' && depth === 1) {
+                    currentBlock++;
+                    blocks.push({ condition: [], cmds: [] });
+                    currentPart = 'condition';
+                    let rest = seg.substring(seg.indexOf('elif') + 4).trim();
+                    if (rest) blocks[currentBlock].condition.push(rest);
+                    continue;
+                } else if (first === 'else') {
+                    if (tokens[1] === 'if') {
+                        if (depth === 1) {
+                            currentBlock++;
+                            blocks.push({ condition: ['true'], cmds: [] });
+                            currentPart = 'then';
+                            seg = seg.substring(seg.indexOf('else') + 4).trim();
+                        }
+                        depth++;
+                    } else if (depth === 1) {
+                        currentBlock++;
+                        blocks.push({ condition: ['true'], cmds: [] });
+                        currentPart = 'then';
+                        let rest = seg.substring(seg.indexOf('else') + 4).trim();
+                        if (rest) blocks[currentBlock].cmds.push(rest);
+                        continue;
+                    }
+                } else if (first === 'fi') {
+                    depth--;
+                    if (depth === 0) {
+                        endIndex = i;
+                        break;
+                    }
+                }
+
+                if (depth >= 1 || (depth === 0 && currentPart === 'condition')) {
+                    if (currentPart === 'condition') {
+                        blocks[currentBlock].condition.push(seg);
+                    } else {
+                        if (seg.trim() !== '') {
+                            blocks[currentBlock].cmds.push(seg);
+                        }
+                    }
+                }
+            }
+
+            for (let b of blocks) {
+                let condStr = b.condition.join('; ');
+                if (this.evaluateCondition(condStr)) {
+                    let cmdStr = b.cmds.join('; ');
+                    if (cmdStr.trim() !== '') {
+                        this.processCommand(cmdStr);
+                    }
+                    break;
+                }
+            }
+
+            if (endIndex !== -1 && endIndex < lines.length - 1) {
+                let remaining = lines.slice(endIndex + 1).join('; ');
+                this.processCommand(remaining);
             }
         } else if (fullCommand.startsWith('while')) {
             const doIdx = fullCommand.indexOf('; do');
