@@ -1,20 +1,20 @@
 const fs = require('fs');
 const assert = require('assert');
+const path = require('path');
 
 function runTestsForFile(filepath) {
     console.log(`\nTesting ${filepath}...`);
-    // Simple way to load the FileSystem class for node
     let code = fs.readFileSync(filepath, 'utf-8');
     code = code.replace('window.fs = new FileSystem();', '');
-    const tempFile = `tests/fs_temp_${Date.now()}.js`;
+    const tempFileName = `fs_temp_${Date.now()}_${Math.random().toString(36).substring(7)}.js`;
+    const tempFilePath = path.join(__dirname, tempFileName);
     const script = `
 ${code}
 module.exports = { FileSystem };
 `;
-    fs.writeFileSync(tempFile, script);
+    fs.writeFileSync(tempFilePath, script);
 
-    // clear require cache if needed, though we generate unique names
-    const { FileSystem } = require(`../${tempFile}`);
+    const { FileSystem } = require(tempFilePath);
 
     // Mock localStorage
     const mockStorage = {};
@@ -123,12 +123,66 @@ module.exports = { FileSystem };
         console.log("✅ export/import test passed");
         passed++;
 
+        // Test 9: Error path in constructor (Malformed JSON)
+        total++;
+        global.localStorage = {
+            getItem: (key) => "{ malformed: json ",
+            setItem: (key, value) => {}
+        };
+
+        const originalConsoleError = console.error;
+        let consoleErrorCalled = false;
+        console.error = () => { consoleErrorCalled = true; };
+
+        let initDefaultFSCalled = false;
+        const originalInitDefaultFS = FileSystem.prototype.initDefaultFS;
+        FileSystem.prototype.initDefaultFS = function() {
+            initDefaultFSCalled = true;
+            originalInitDefaultFS.call(this);
+        };
+
+        const errorFs = new FileSystem();
+
+        FileSystem.prototype.initDefaultFS = originalInitDefaultFS;
+        console.error = originalConsoleError;
+
+        assert.ok(consoleErrorCalled, "console.error should have been called upon malformed JSON");
+        assert.ok(initDefaultFSCalled, "initDefaultFS should have been called on error");
+        assert.strictEqual(errorFs.root.name, '/', "Root should be initialized despite error");
+        assert.ok(errorFs.root.children['home'], "Home directory should be re-initialized despite error");
+        console.log("✅ Malformed JSON error path passed");
+        passed++;
+
+        // Test 10: Happy path for importState with localStorage setup
+        total++;
+        const validJson = JSON.stringify({
+            name: '/',
+            type: 'dir',
+            children: {
+                home: {
+                    name: 'home',
+                    type: 'dir',
+                    children: {}
+                }
+            }
+        });
+        global.localStorage = {
+            getItem: (key) => validJson,
+            setItem: (key, value) => {}
+        };
+
+        const importedFs = new FileSystem();
+        assert.strictEqual(importedFs.root.name, '/', "Root should be initialized");
+        assert.ok(importedFs.root.children['home'], "Home directory should exist");
+        console.log("✅ Valid importState path passed");
+        passed++;
+
     } catch (e) {
         console.error("❌ Test failed:", e);
         exitCode = 1;
     } finally {
-        if (fs.existsSync(tempFile)) {
-            fs.unlinkSync(tempFile);
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
         }
     }
 
@@ -137,8 +191,8 @@ module.exports = { FileSystem };
 }
 
 let finalExitCode = 0;
-finalExitCode |= runTestsForFile('js/fs.js');
-finalExitCode |= runTestsForFile('en/js/fs.js');
+finalExitCode |= runTestsForFile(path.join(__dirname, '../js/fs.js'));
+finalExitCode |= runTestsForFile(path.join(__dirname, '../en/js/fs.js'));
 
 if (finalExitCode !== 0) {
     process.exit(finalExitCode);

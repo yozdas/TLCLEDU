@@ -1,20 +1,22 @@
 const fs = require('fs');
 const assert = require('assert');
+const path = require('path');
 
 function runTestsForFile(filepath) {
     console.log(`\nTesting ${filepath}...`);
     // Simple way to load the Terminal class for node
     let code = fs.readFileSync(filepath, 'utf-8');
     code = code.replace('window.Terminal = Terminal;', '');
-    const tempFile = `tests/terminal_temp_${Date.now()}.js`;
+    const tempFileName = `terminal_temp_${Date.now()}_${Math.random().toString(36).substring(7)}.js`;
+    const tempFilePath = path.join(__dirname, tempFileName);
     const script = `
 ${code}
 module.exports = { Terminal };
 `;
-    fs.writeFileSync(tempFile, script);
+    fs.writeFileSync(tempFilePath, script);
 
     // clear require cache if needed, though we generate unique names
-    const { Terminal } = require(`../${tempFile}`);
+    const { Terminal } = require(tempFilePath);
 
     // Mock DOM
     global.document = {
@@ -74,8 +76,8 @@ module.exports = { Terminal };
         console.error("❌ Test failed:", e);
         exitCode = 1;
     } finally {
-        if (fs.existsSync(tempFile)) {
-            fs.unlinkSync(tempFile);
+        if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
         }
     }
 
@@ -84,8 +86,8 @@ module.exports = { Terminal };
 }
 
 let finalExitCode = 0;
-finalExitCode |= runTestsForFile('js/terminal.js');
-finalExitCode |= runTestsForFile('en/js/terminal.js');
+finalExitCode |= runTestsForFile(path.join(__dirname, '../js/terminal.js'));
+finalExitCode |= runTestsForFile(path.join(__dirname, '../en/js/terminal.js'));
 
 if (finalExitCode !== 0) {
     process.exit(finalExitCode);
