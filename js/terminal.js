@@ -363,7 +363,17 @@ class Terminal {
             cmdSpan.textContent = html;
             div.appendChild(cmdSpan);
         } else {
-            div.innerHTML = typeof window !== 'undefined' && window.DOMPurify ? window.DOMPurify.sanitize(html) : html.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[t] || t));
+            // Local fallback that preserves safe styled span tags instead of encoding the whole string
+            if (typeof window !== 'undefined' && window.DOMPurify) {
+                div.innerHTML = window.DOMPurify.sanitize(html);
+            } else {
+                // Safely create a text node if DOMPurify fails completely, or simply assign string text
+                // However, since we ensure local dompurify is included, it shouldn't fail.
+                // If it does, we strip tags manually to avoid both XSS and showing literal '&lt;span...'
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = html.replace(/<[^>]*>?/gm, '');
+                div.appendChild(tempDiv);
+            }
         }
         this.outputDiv.appendChild(div);
         
@@ -768,7 +778,13 @@ class Terminal {
     printOutput(html) {
         const div = document.createElement('div');
         div.className = 'terminal-line';
-        div.innerHTML = typeof window !== 'undefined' && window.DOMPurify ? window.DOMPurify.sanitize(html) : html.replace(/[&<>'"]/g, t => ({'&':'&amp;','<':'&lt;','>':'&gt;','\'':'&#39;','"':'&quot;'}[t] || t));
+        if (typeof window !== 'undefined' && window.DOMPurify) {
+            div.innerHTML = window.DOMPurify.sanitize(html);
+        } else {
+            const tempDiv = document.createElement('div');
+            tempDiv.textContent = html.replace(/<[^>]*>?/gm, '');
+            div.appendChild(tempDiv);
+        }
         this.outputDiv.appendChild(div);
         this.outputDiv.scrollTop = this.outputDiv.scrollHeight;
     }
