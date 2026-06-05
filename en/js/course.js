@@ -103,11 +103,11 @@ class CourseManager {
             }
         }
 
-        document.getElementById('lesson-title').innerHTML = lesson.title;
-        document.getElementById('lesson-text').innerHTML = lesson.text;
+        document.getElementById('lesson-title').innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(lesson.title) : "Error: Security module missing.";
+        document.getElementById('lesson-text').innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(lesson.text) : "Error: Security module missing.";
         
         const taskContainer = document.getElementById('lesson-task');
-        taskContainer.innerHTML = lesson.task;
+        taskContainer.innerHTML = window.DOMPurify ? window.DOMPurify.sanitize(lesson.task) : "Error: Security module missing.";
         
         const codes = taskContainer.querySelectorAll('code');
         codes.forEach(code => {
@@ -194,7 +194,7 @@ class CourseManager {
             chapterEl.innerHTML = `
                 <div class="chapter-header ${hasActive ? 'open' : ''}" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('hidden')">
                     <span class="chapter-icon">📁</span>
-                    <span class="chapter-title">${chapter.title}</span>
+                    <span class="chapter-title">${window.DOMPurify ? window.DOMPurify.sanitize(chapter.title) : "Security Error"}</span>
                 </div>
                 <div class="chapter-content ${hasActive ? '' : 'hidden'}">
                 </div>
@@ -213,11 +213,12 @@ class CourseManager {
                 const isCompleted = index < this.maxUnlockedIndex;
                 const statusIcon = isCompleted ? '✅' : (index === this.maxUnlockedIndex ? '🚀' : '🔒');
                 
+                const displayTitle = lesson.title.includes(':') ? lesson.title.split(':').slice(1).join(':').trim() : lesson.title;
                 item.innerHTML = `
                     <span class="curriculum-icon status-icon">${statusIcon}</span>
                     <div class="curriculum-details">
-                        <div class="curriculum-title">${lesson.title.includes(':') ? lesson.title.split(':').slice(1).join(':').trim() : lesson.title}</div>
-                        <div class="curriculum-desc">${lesson.description}</div>
+                        <div class="curriculum-title">${window.DOMPurify ? window.DOMPurify.sanitize(displayTitle) : "Security Error"}</div>
+                        <div class="curriculum-desc">${window.DOMPurify ? window.DOMPurify.sanitize(lesson.description) : "Security Error"}</div>
                     </div>
                 `;
                 
