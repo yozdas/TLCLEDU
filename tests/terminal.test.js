@@ -2,7 +2,7 @@ const fs = require('fs');
 const assert = require('assert');
 const path = require('path');
 
-function runTestsForFile(filepath) {
+async function runTestsForFile(filepath) {
     console.log(`\nTesting ${filepath}...`);
     // Simple way to load the Terminal class for node
     let code = fs.readFileSync(filepath, 'utf-8');
@@ -19,16 +19,24 @@ module.exports = { Terminal };
     const { Terminal } = require(tempFilePath);
 
     // Mock DOM
+    const mockElements = {};
     global.document = {
-        getElementById: () => ({
-            addEventListener: () => {},
-            classList: { add: () => {}, remove: () => {} },
-            style: {}
-        }),
+        getElementById: (id) => {
+            if (!mockElements[id]) {
+                mockElements[id] = {
+                    addEventListener: () => {},
+                    classList: { add: () => {}, remove: () => {} },
+                    style: {},
+                    value: '',
+                    focus: () => {}
+                };
+            }
+            return mockElements[id];
+        },
         addEventListener: () => {}
     };
     global.navigator = { clipboard: { readText: async () => "" } };
-    global.window = { addEventListener: () => {} };
+    global.window = { addEventListener: () => {}, getSelection: () => ({ toString: () => "" }) };
 
     const mockFs = {
         pwd: () => "/home/user"
@@ -72,6 +80,38 @@ module.exports = { Terminal };
         console.log("✅ Syntax error arithmetic evaluation passed");
         passed++;
 
+        // Test 5: Clipboard read exception handling
+        total++;
+        let consoleWarnCalled = false;
+        let warnMessage = '';
+        const originalWarn = console.warn;
+        console.warn = (msg, err) => {
+            consoleWarnCalled = true;
+            warnMessage = msg;
+        };
+
+        const error = new Error('Clipboard error');
+        global.navigator = {
+            clipboard: {
+                readText: async () => {
+                    throw error;
+                }
+            }
+        };
+
+        const btnPaste = document.getElementById('menu-paste');
+        if (btnPaste && btnPaste.onclick) {
+            await btnPaste.onclick();
+        }
+
+        assert.strictEqual(consoleWarnCalled, true, "console.warn should be called when clipboard read fails");
+        assert.strictEqual(warnMessage, 'Failed to read clipboard contents:', "Warning message should match expected text");
+
+        // Restore console.warn
+        console.warn = originalWarn;
+        console.log("✅ Clipboard read exception handling passed");
+        passed++;
+
     } catch (e) {
         console.error("❌ Test failed:", e);
         exitCode = 1;
@@ -85,10 +125,13 @@ module.exports = { Terminal };
     return exitCode;
 }
 
-let finalExitCode = 0;
-finalExitCode |= runTestsForFile(path.join(__dirname, '../js/terminal.js'));
-finalExitCode |= runTestsForFile(path.join(__dirname, '../en/js/terminal.js'));
+async function runAll() {
+    let finalExitCode = 0;
+    finalExitCode |= await runTestsForFile(path.join(__dirname, '../js/terminal.js'));
+    finalExitCode |= await runTestsForFile(path.join(__dirname, '../en/js/terminal.js'));
 
-if (finalExitCode !== 0) {
-    process.exit(finalExitCode);
+    if (finalExitCode !== 0) {
+        process.exit(finalExitCode);
+    }
 }
+runAll();
