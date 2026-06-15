@@ -752,7 +752,8 @@ class CommandRegistry {
             if (!res.success) return { error: `mapfile: ${file}: No such file` };
             
             const arrayName = args[args.indexOf('-t') + 1] || 'MAPFILE';
-            term.env[arrayName] = res.output; // Store raw for now, our shell handles ${array[idx]}
+            // Read lines into a real array so ${arr[i]} and ${#arr[@]} expand correctly
+            term.env[arrayName] = res.output.split('\n').filter(line => line.length > 0);
             return { output: '', noPrint: true };
         });
 

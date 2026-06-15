@@ -221,15 +221,7 @@ while true; do
   echo "$REPLY" "\${cmds[./$REPLY]}" "bytes"
 done`);
 
-        this.ensureFile('array-mapfile', scripts, `#!/bin/bash
-DICTIONARY=/usr/share/dict/words
-WORDLIST=~/wordlist.txt
-declare -a words
-mapfile -t -n 32767 words < "$WORDLIST"
-while [[ -z $REPLY ]]; do
-    echo "\${words[$RANDOM]}" "\${words[$RANDOM]}" "\${words[$RANDOM]}" "\${words[$RANDOM]}"
-    read -r -p "Enter to continue, q to quit > "
-done`);
+        this.ensureFile('array-mapfile', scripts, this.arrayMapfileScript());
 
         this.ensureFile('array-multi', scripts, `#!/bin/bash
 declare -A multi_array
@@ -774,10 +766,34 @@ echo "REPLY = '$REPLY'"`);
         return { success: true };
     }
 
+    // 'array-mapfile' sample script (Chapter 35: Arrays). Both initDefaultFS and
+    // migrateFS use this single source. The old version contained an interactive
+    // 'read' loop that froze the browser in the simulator; this version is not
+    // interactive.
+    arrayMapfileScript() {
+        return `#!/bin/bash
+# array-mapfile: read a text file into an array (mapfile) and show its elements
+WORDLIST=~/wordlist.txt
+mapfile -t words < "$WORDLIST"
+echo "wordlist.txt has been read into the 'words' array."
+echo "Total elements: \${#words[@]}"
+echo "First four elements: \${words[0]} \${words[1]} \${words[2]} \${words[3]}"
+echo "Eleventh element: \${words[10]}"`;
+    }
+
     migrateFS() {
-        // Eksik temel veya sonradan eklenen tüm dosyaları otomatik enjekte et
+        // Auto-inject missing base files or files added later
         const savedCurrentDirName = this.pwd();
         this.initDefaultFS();
+
+        // Refresh the old interactive array-mapfile script (infinite read loop that
+        // froze the browser) for users whose FS is already saved in localStorage.
+        const arrayMapfile = this.resolvePath('/home/user/scripts/array-mapfile');
+        if (arrayMapfile && arrayMapfile.type === 'file' &&
+            /while\s*\[\[\s*-z\s*\$REPLY/.test(arrayMapfile.content || '')) {
+            arrayMapfile.content = this.arrayMapfileScript();
+        }
+
         const restoredDir = this.resolvePath(savedCurrentDirName);
         if (restoredDir) {
             this.currentDir = restoredDir;

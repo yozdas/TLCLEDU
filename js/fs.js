@@ -221,15 +221,7 @@ while true; do
   echo "$REPLY" "\${cmds[./$REPLY]}" "bytes"
 done`);
 
-        this.ensureFile('array-mapfile', scripts, `#!/bin/bash
-DICTIONARY=/usr/share/dict/words
-WORDLIST=~/wordlist.txt
-declare -a words
-mapfile -t -n 32767 words < "$WORDLIST"
-while [[ -z $REPLY ]]; do
-    echo "\${words[$RANDOM]}" "\${words[$RANDOM]}" "\${words[$RANDOM]}" "\${words[$RANDOM]}"
-    read -r -p "Enter to continue, q to quit > "
-done`);
+        this.ensureFile('array-mapfile', scripts, this.arrayMapfileScript());
 
         this.ensureFile('array-multi', scripts, `#!/bin/bash
 declare -A multi_array
@@ -774,10 +766,33 @@ echo "REPLY = '$REPLY'"`);
         return { success: true };
     }
 
+    // 'array-mapfile' örnek scripti (Bölüm 35: Diziler). Hem initDefaultFS hem
+    // migrateFS bu tek kaynağı kullanır. Eski sürüm interaktif bir 'read' döngüsü
+    // içeriyordu ve simülatörde tarayıcıyı donduruyordu; bu sürüm interaktif değildir.
+    arrayMapfileScript() {
+        return `#!/bin/bash
+# array-mapfile: bir metin dosyasını diziye okur (mapfile) ve öğelerini gösterir
+WORDLIST=~/wordlist.txt
+mapfile -t words < "$WORDLIST"
+echo "wordlist.txt dosyası 'words' dizisine okundu."
+echo "Toplam öğe sayısı: \${#words[@]}"
+echo "İlk dört öğe: \${words[0]} \${words[1]} \${words[2]} \${words[3]}"
+echo "On birinci öğe: \${words[10]}"`;
+    }
+
     migrateFS() {
         // Eksik temel veya sonradan eklenen tüm dosyaları otomatik enjekte et
         const savedCurrentDirName = this.pwd();
         this.initDefaultFS();
+
+        // Eski, donmaya yol açan interaktif array-mapfile scriptini (sonsuz read
+        // döngüsü) localStorage'da kayıtlı kullanıcılar için yenile.
+        const arrayMapfile = this.resolvePath('/home/user/scripts/array-mapfile');
+        if (arrayMapfile && arrayMapfile.type === 'file' &&
+            /while\s*\[\[\s*-z\s*\$REPLY/.test(arrayMapfile.content || '')) {
+            arrayMapfile.content = this.arrayMapfileScript();
+        }
+
         const restoredDir = this.resolvePath(savedCurrentDirName);
         if (restoredDir) {
             this.currentDir = restoredDir;
