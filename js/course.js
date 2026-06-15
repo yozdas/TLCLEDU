@@ -264,6 +264,21 @@ class CourseManager {
         }
     }
 
+    completeLesson() {
+        if (this.currentIndex < this.lessons.length - 1) {
+            if (this.currentIndex === this.maxUnlockedIndex) {
+                this.maxUnlockedIndex++;
+                this.currentIndex = this.maxUnlockedIndex;
+                localStorage.setItem('tlcl_progress', this.maxUnlockedIndex);
+            } else {
+                this.currentIndex++;
+            }
+            this.updateUnlockedCommands();
+            this.renderCurrentLesson();
+            if (this.onLessonComplete) this.onLessonComplete();
+        }
+    }
+
     goToLesson(index) {
         if (index >= 0 && index <= this.maxUnlockedIndex) {
             this.currentIndex = index;
